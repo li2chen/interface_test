@@ -4,6 +4,8 @@ from common.config import get_config
 import json
 from common.log import Logger
 
+# import traceback
+
 log = Logger('DB_LOG').log()
 
 
@@ -47,8 +49,9 @@ def exec_sql(sql, args=None, key=None):
 			else:
 				result = exec_result[key]
 			log.info('exec sql --> end')
-	except:
-		log.error('exec sql --> error')
+	except Exception:
+		# traceback.print_exc()
+		log.error('exec sql error -->', Exception)
 		conn.rollback()
 	finally:
 		conn.commit()
