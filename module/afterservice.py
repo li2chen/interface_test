@@ -19,6 +19,7 @@ def get_service_reason(project_code, order_id, service_type):
 
 
 def apply_service(headers, order_id, project_code=44030052, service_type='REFUNDONLY'):
+	# 申請售後 ，RETURNPRODUCTANDREFUND--退货退款  CHANGEPRODUCT--换货  REFUNDONLY--仅退款
 	resp_result = get_service_reason(project_code=project_code, order_id=order_id, service_type=service_type)
 	if resp_result.json().get('result') == '不支持的售后类型':
 		log.error('method get_service_reason() occurred error ,method apply_service(): run over')
@@ -61,6 +62,7 @@ def apply_service(headers, order_id, project_code=44030052, service_type='REFUND
 
 
 def service_list(order_id, project_code='44030011'):
+	# 售后详情
 	url = '/aftersales/services/list'
 	item_id = order_item(order_id=order_id, key='id')
 	params = {'project_code': project_code, 'order_id': order_id, 'item_id': item_id}
@@ -71,6 +73,7 @@ def service_list(order_id, project_code='44030011'):
 
 
 def service_get_logistics(headers, order_id, project_code='44030011'):
+	# 获取物流公司
 	url = '/aftersales/logistics/info'
 	service_id = order_item(order_id=order_id, key='current_service')
 	params = {'project_code': project_code, 'order_id': order_id, 'service_id': service_id}
@@ -80,7 +83,8 @@ def service_get_logistics(headers, order_id, project_code='44030011'):
 	return resp
 
 
-def return_logistics_info(headers, order_id, project_code='44030011', express_company='YUANTONG', express_no='A000001'):
+def input_logistics(headers, order_id, project_code='44030011', express_company='YUANTONG', express_no='0000001'):
+	# 填写回寄的快递单
 	url = '/aftersales/goods/logistics'
 	item_id = order_item(order_id=order_id, key='id')
 	service_id = order_item(order_id=order_id, key='current_service')
