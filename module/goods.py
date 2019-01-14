@@ -12,5 +12,5 @@ def goods_detail(goods_id, project_code=44030025):
 	params = {'project_code': project_code}
 	log.info('method : goods_detail() --> begin')
 	resp = request(method='get', url=host + url, params=params)
-	log.info('method : goods_detail() --> begin')
+	log.info('method : goods_detail() --> end')
 	return resp
