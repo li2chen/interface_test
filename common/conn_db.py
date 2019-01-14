@@ -11,27 +11,26 @@ log = Logger('DB_LOG').log()
 
 def get_conn(index='db', item='db_info'):
 	conn = pymysql.connect(**json.loads(get_config(index, item)))
-	log.info('connect mysql success')
 	return conn
 
 
 def close_db(conn, cursor):
 	try:
+		log.info('close db --> begin')
 		if not cursor:
 			cursor.close()
 		if not conn:
 			conn.close()
 		log.info('close db success')
-	except:
-		log.error('close db error')
-		print('error')
+	except BaseException as e:
+		log.error('close db error : ', e)
 
 
 def exec_sql(sql, args=None, key=None):
 	conn = get_conn()
 	cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 	result = ''
-	log.info('exec sql --> begin')
+	log.info('exec sql --> begin ; sql -- >' + sql)
 	try:
 		if not args:
 			cursor.execute(query=sql)
@@ -40,7 +39,6 @@ def exec_sql(sql, args=None, key=None):
 				result = exec_result
 			else:
 				result = exec_result[key]
-			log.info('exec sql --> end')
 		else:
 			cursor.execute(query=sql, args=args)
 			exec_result = cursor.fetchone()
@@ -48,16 +46,14 @@ def exec_sql(sql, args=None, key=None):
 				result = exec_result
 			else:
 				result = exec_result[key]
-			log.info('exec sql --> end')
-	except Exception:
+	except BaseException as e:
 		# traceback.print_exc()
-		log.error('exec sql error -->', Exception)
+		log.error('exec sql error -->', e)
 		conn.rollback()
 	finally:
 		conn.commit()
 		close_db(conn, cursor)
-	log.info('exec_result : ↓↓↓')
-	log.info(result)
+	log.info('exec sql --> end ; result -- >' + str(sql))
 	return result
 
 
