@@ -11,50 +11,10 @@ from common.sql.activity import activity, exists_activity
 from common.sql.order import orders
 
 from common.log import Logger
+from module.goods import goods_detail
 
 log = Logger('ORDER_LOG').log()
 host = get_host()
-
-
-def _create_order1(headers, goods_id, bounty=0):
-	url = '/order/create'
-	log.info('method create_order()--> begin')
-	address = address_id(headers)
-	product_id = product(goods_id, 'id')
-	snap_id = goods(goods_id, 'snap_id')
-	price = int(product(goods_id, 'price') * 100)
-	shipping = int(logistics_info(goods(goods_id, 'logistics_template_id'), 'price') * 100)
-	order_price = price + shipping
-	log.info('create_order --> product_id: %s, price(分): %s, snap_id: %s, logistics_price: %s, order_price: %s' % (
-		product_id, price, snap_id, shipping, order_price))
-	data = {
-		"goods": [{
-			"goods_id": goods_id,
-			"product_id": product_id,
-			"price": price,
-			"num": 1,
-
-			# "activity": "",
-			# "activity": {
-			# 	"id": 627,
-			# 	"price": 2000,
-			# 	"type": "GROUPON"
-			# },
-
-			"snap_id": snap_id,
-			"user_info": []
-		}],
-		"shiping": shipping,
-		"order_price": order_price,
-		"addr_id": address,
-		"comments": [],
-		"ticket_nos": [],
-		"open_bounty": "true",
-		"bounty": bounty  # 奖励金
-	}
-	resp = req(method='post', url=host + url, headers=headers, json=data)
-	log.info('method create_order()--> end')
-	return resp
 
 
 def order(headers, goods_id):
@@ -65,7 +25,7 @@ def order(headers, goods_id):
 	return pay_id
 
 
-def _create_order(headers, goods_id, bounty=0):
+def _create_order(headers, goods_id):
 	url = '/order/create'
 	log.info('method create_order()--> begin')
 	address = address_id(headers)
@@ -80,8 +40,14 @@ def _create_order(headers, goods_id, bounty=0):
 		price = int(product(goods_id, 'price') * 100)
 	shipping = int(logistics_info(goods(goods_id, 'logistics_template_id'), 'price') * 100)
 	order_price = price + shipping
-	log.info('create_order --> product_id: %s, price(分): %s, snap_id: %s, logistics_price: %s, order_price: %s' % (
-		product_id, price, snap_id, shipping, order_price))
+	# 奖励金
+	try:
+		bounty = goods_detail(goods_id=goods_id).json().get('result').get('bounty')
+		if bounty:  # 如果有奖励金，订单价格要减去奖励金
+			order_price = price + shipping - int(bounty)
+	except BaseException as e:
+		log.error('获取奖励金数据失败，下单时设置奖励金为0 --> ', e)
+		bounty = 0
 	data = {
 		"goods": [{
 			"goods_id": goods_id,
@@ -128,8 +94,3 @@ def _create_order(headers, goods_id, bounty=0):
 		resp = req(method='post', url=host + url, headers=headers, json=data_activity)
 	log.info('method create_order()--> end')
 	return resp
-
-
-if __name__ == '__main__':
-	headers1 = login_token()
-	pay = order(headers=headers1)
