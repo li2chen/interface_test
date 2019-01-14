@@ -30,30 +30,29 @@ def exec_sql(sql, args=None, key=None):
 	conn = get_conn()
 	cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 	result = ''
-	log.info('exec sql --> begin ; sql -- >' + sql)
+	log.info('exec sql --> begin ; sql --> ' + sql)
 	try:
 		if not args:
 			cursor.execute(query=sql)
 			exec_result = cursor.fetchone()
-			if not key:
-				result = exec_result
-			else:
+			if exec_result and key:
 				result = exec_result[key]
+			else:
+				result = exec_result
 		else:
 			cursor.execute(query=sql, args=args)
 			exec_result = cursor.fetchone()
-			if not key:
-				result = exec_result
-			else:
+			if exec_result and key:
 				result = exec_result[key]
+			else:
+				result = exec_result
 	except BaseException as e:
-		# traceback.print_exc()
 		log.error('exec sql error -->', e)
 		conn.rollback()
 	finally:
 		conn.commit()
 		close_db(conn, cursor)
-	log.info('exec sql --> end ; result -- >' + str(sql))
+	log.info('exec sql --> end ; result --> ' + str(result))
 	return result
 
 
