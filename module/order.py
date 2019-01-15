@@ -17,15 +17,15 @@ log = Logger('ORDER_LOG').log()
 host = get_host()
 
 
-def order(headers, goods_id):
-	res = _create_order(headers=headers, goods_id=goods_id)
+def order(headers, goods_id, num=1):
+	res = _create_order(headers=headers, goods_id=goods_id, num=num)
 	pay_id = res.json().get('result').get('order_id')
 	order_id = orders(payment_id=pay_id, key='id')
 	log.info(f'pay_id : {pay_id} , order_id : {order_id}')
 	return pay_id
 
 
-def _create_order(headers, goods_id):
+def _create_order(headers, goods_id, num=1):
 	url = '/order/create'
 	log.info('method create_order()--> begin')
 	address = address_id(headers)
@@ -43,8 +43,8 @@ def _create_order(headers, goods_id):
 	# 奖励金
 	try:
 		bounty = goods_detail(goods_id=goods_id).json().get('result').get('bounty')
-		if bounty:  # 如果有奖励金，订单价格要减去奖励金
-			order_price = price + shipping - int(bounty)
+		if bounty:  # 如果有奖励金，订单价格要减去奖励金；上面是单个商品的奖励金，如果多个商品，则要乘以数量
+			order_price = price * num + shipping - int(bounty) * num
 	except BaseException as e:
 		log.error('获取奖励金数据失败，下单时设置奖励金为0 --> ', e)
 		bounty = 0
@@ -53,7 +53,7 @@ def _create_order(headers, goods_id):
 			"goods_id": goods_id,
 			"product_id": product_id,
 			"price": price,
-			"num": 1,
+			"num": num,
 			"snap_id": snap_id,
 			"user_info": []
 		}],
@@ -63,7 +63,7 @@ def _create_order(headers, goods_id):
 		"comments": [],
 		"ticket_nos": [],
 		"open_bounty": "true",
-		"bounty": bounty  # 奖励金
+		"bounty": bounty * num  # 奖励金
 
 	}
 	data_activity = {
@@ -86,7 +86,7 @@ def _create_order(headers, goods_id):
 		"comments": [],
 		"ticket_nos": [],
 		"open_bounty": "true",
-		"bounty": bounty  # 奖励金
+		"bounty": bounty * num  # 奖励金，要根据数量翻倍
 	}
 	if not has_activity:
 		resp = req(method='post', url=host + url, headers=headers, json=data)
