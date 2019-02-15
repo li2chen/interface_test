@@ -50,7 +50,7 @@ def _create_order(headers, goods_id, num=1):
 		resp_calc = coupon_calc(headers=headers, goods_id=goods_id, product_id=product_id, num=num)
 		bounty = resp_calc.json().get('result').get('bounty')
 		# 支付金额
-		order_price = price + shipping - bounty
+		order_price = price * num + shipping - bounty
 		data = {
 			"goods": [{
 				"goods_id": goods_id,
@@ -66,14 +66,14 @@ def _create_order(headers, goods_id, num=1):
 			"comments": [],
 			"ticket_nos": [],
 			"open_bounty": "true",
-			"bounty": bounty * num
+			"bounty": bounty
 		}
 		data_activity = {
 			"goods": [{
 				"goods_id": goods_id,
 				"product_id": product_id,
 				"price": price,
-				"num": 1,
+				"num": num,
 				"activity": {
 					"id": activity_id,
 					"price": price,
@@ -88,7 +88,7 @@ def _create_order(headers, goods_id, num=1):
 			"comments": [],
 			"ticket_nos": [],
 			"open_bounty": "true",
-			"bounty": bounty * num  # 奖励金，要根据数量翻倍
+			"bounty": bounty
 		}
 		if not activity_id:  # 非活动商品下单
 			resp = req(method='post', url=host + url, headers=headers, json=data)
