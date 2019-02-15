@@ -10,7 +10,6 @@ from common.sql.activity import activity, exists_activity
 from common.sql.order import orders
 
 from common.log import Logger
-from module.goods import goods_detail
 
 log = Logger('ORDER_LOG').log()
 host = get_host()
@@ -48,9 +47,14 @@ def _create_order(headers, goods_id, num=1):
 		shipping = int(logistics_info(goods_info['logistics_template_id'], 'price') * 100)
 		# 奖励金
 		resp_calc = coupon_calc(headers=headers, goods_id=goods_id, product_id=product_id, num=num)
+		paid_price = resp_calc.json().get('result').get('paid_amount')
 		bounty = resp_calc.json().get('result').get('bounty')
 		# 支付金额
 		order_price = price * num + shipping - bounty
+		order_price2 = paid_price + shipping
+		if order_price != order_price2:
+			log.error(f'计算金额-->[{order_price}],和接口计算金额-->[{order_price2}]两个结果不一致，不能成单')
+			return
 		data = {
 			"goods": [{
 				"goods_id": goods_id,
