@@ -102,3 +102,36 @@ def _create_order(headers, goods_id, num=1):
 			return resp
 	except Exception as e:
 		log.error('create_order() failed', e)
+
+
+def coupon_calc(headers, goods_id, product_id=None, num=1):
+	url = '/coupon/calc'
+	try:
+		log.info('method coupon_calc()--> begin')
+		product_info = product(goods_id=goods_id)
+		goods_info = goods(goods_id=goods_id)
+		activity_info = activity(goods_id=goods_id)
+		if not product_id:
+			product_id = product_info['id']
+		supplier_id = goods_info['supplier_id']
+		price = int(product_info['price']) * 100
+		category_id = goods_info['category_id']
+		activity_id = activity_info['id']
+		data = {
+			"goods_products": [{
+				"goods_id": goods_id,
+				"product_id": product_id,
+				"supplier_id": supplier_id,
+				"price": price,
+				"num": num,
+				"activity_type": "GROUPON",
+				"category_id": category_id,
+				"activity_id": activity_id}],
+			"ticket_nos": [],
+			"type": "ALL"}
+		resp = req(method='post', headers=headers, url=host + url, json=data)
+		if resp.status_code == 200 and resp.json().get('message') == 'success':
+			log.info('method coupon_calc()--> end')
+			return resp
+	except Exception as e:
+		log.error('coupon_calc() failed', e)
