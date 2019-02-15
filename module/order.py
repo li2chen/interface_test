@@ -46,14 +46,11 @@ def _create_order(headers, goods_id, num=1):
 			activity_id = ''
 			price = int(product_info['price'] * 100)
 		shipping = int(logistics_info(goods_info['logistics_template_id'], 'price') * 100)
-		order_price = price + shipping
 		# 奖励金
-		bounty = goods_detail(goods_id=goods_id).json().get('result').get('bounty')
-		if bounty:  # 如果有奖励金，订单价格要减去奖励金；上面是单个商品的奖励金，如果多个商品，则要乘以数量
-			order_price = price * num + shipping - int(bounty) * num
-		else:
-			log.error('获取奖励金数据失败，下单时设置奖励金为0')
-			bounty = 0
+		resp_calc = coupon_calc(headers=headers, goods_id=goods_id, product_id=product_id, num=num)
+		bounty = resp_calc.json().get('result').get('bounty')
+		# 支付金额
+		order_price = price + shipping - bounty
 		data = {
 			"goods": [{
 				"goods_id": goods_id,
@@ -114,9 +111,13 @@ def coupon_calc(headers, goods_id, product_id=None, num=1):
 		if not product_id:
 			product_id = product_info['id']
 		supplier_id = goods_info['supplier_id']
-		price = int(product_info['price']) * 100
 		category_id = goods_info['category_id']
-		activity_id = activity_info['id']
+		if activity_info:
+			activity_id = activity_info['id']
+			price = int(activity_info['activity_min_price'] * 100)
+		else:
+			activity_id = ''
+			price = int(product_info['price'] * 100)
 		data = {
 			"goods_products": [{
 				"goods_id": goods_id,
