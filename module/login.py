@@ -1,42 +1,23 @@
 # coding=utf-8
-from common.requests import request as req
-from common.config import get_config
 import json
-from common.log import Logger
+from config.config import get_h5
+from com.req import request
 
-log = Logger('LOGIN_LOG:').log()
-
-
-def _get_user(index='H5_user', item='user1'):
-	user = json.loads(get_config(index, item))
-	log.info(f'login user :{user}')
-	return user
-
-
-def _get_data(index='H5_user', item='data1'):
-	data = json.loads(get_config(index, item))
-	return data
-
-
-def _get_login_url(index='H5_user', item='login_url'):
-	url = get_config(index, item)
-	return url
-
-
-def _get_token(user, info, url):
-	data = {"scopes": "all", "submit": ""}
-	data.update(user)
-	data.update(info)
-	log.info(f'login data :{data}')
-	log.info(f'method _get_token() --> begin')
-	resp = req(method='post', url=url, data=data)
-	token = resp.json().get('token')
-	headers = {'x-auth-token': token}
-	log.info(f'login token :{token}')
-	log.info(f'method _get_token() --> end')
-	return headers
+login_info = get_h5()
+url = login_info[0]
+user = json.loads(login_info[1])
+info = json.loads(login_info[2])
 
 
 def login_token():
-	headers = _get_token(_get_user(), _get_data(), _get_login_url())
+	data = {"scopes": "all", "submit": ""}
+	data.update(user)
+	data.update(info)
+	resp = request(method='post', url=url, data=data)
+	token = resp.json().get('token')
+	headers = {'x-auth-token': token}  # {'x-auth-token': '6f08952a-9a23-4ede-91b6-ff274fe4bca0'}
 	return headers
+
+
+if __name__ == '__main__':
+	login_token()
