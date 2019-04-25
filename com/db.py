@@ -1,22 +1,20 @@
 # coding=utf-8
 import pymysql
-from common.config import get_config
+from config.config import get_db_info
+from com.log import Logger
 import json
-from common.log import Logger
-
-# import traceback
 
 log = Logger('DB_LOG').log()
+db_info = json.loads(get_db_info())
 
 
-def get_conn(index='db', item='db_info'):
-	conn = pymysql.connect(**json.loads(get_config(index, item)))
-	return conn
+def get_conn():
+	return pymysql.connect(**db_info)
 
 
 def close_db(conn, cursor):
 	try:
-		log.info('close db --> begin')
+		log.info('close db begin')
 		if not cursor:
 			cursor.close()
 		if not conn:
@@ -30,7 +28,7 @@ def exec_sql(sql, args=None, key=None):
 	conn = get_conn()
 	cursor = conn.cursor(cursor=pymysql.cursors.DictCursor)
 	result = ''
-	log.info('exec sql --> begin ; sql --> ' + sql)
+	log.info('exec sql >>> ' + sql)
 	try:
 		if not args:
 			cursor.execute(query=sql)
@@ -47,12 +45,12 @@ def exec_sql(sql, args=None, key=None):
 			else:
 				result = exec_result
 	except BaseException as e:
-		log.error('exec sql error -->', e)
+		log.error('exec sql error >>>', e)
 		conn.rollback()
 	finally:
 		conn.commit()
 		close_db(conn, cursor)
-	log.info('exec sql --> end ; result --> ' + str(result))
+	log.info('exec result >>> ' + str(result))
 	return result
 
 
