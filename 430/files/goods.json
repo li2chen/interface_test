@@ -1,0 +1,25 @@
+{
+  "name": "test_001",
+  "request": {
+    "url": "xxx",
+    "method": "get",
+    "headers": {
+      "content-type": "application/json"
+    },
+    "data": {
+      "project_code": "44030025"
+    }
+  },
+  "response": {
+    "status_code": "200",
+    "body": {
+      "code": "0",
+      "msg": {
+        "in": "\"code\":0",
+        "not": "not_msg",
+        "eq": ""
+      },
+      "message": "None"
+    }
+  }
+}
